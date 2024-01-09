@@ -51,8 +51,9 @@ import Control.Alternative (guard, (<|>))
 import Control.Monad.RWS (ask)
 import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
+import Data.Array.NonEmpty as NEA
 import Data.Array.NonEmpty as NonEmptyArray
-import Data.Foldable (foldMap, foldl)
+import Data.Foldable (foldMap, foldl, foldr)
 import Data.FoldableWithIndex (foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.Function (on)
 import Data.FunctorWithIndex (mapWithIndex)
@@ -70,11 +71,12 @@ import Data.Set as Set
 import Data.Traversable (class Foldable, Accum, foldr, for, mapAccumL, mapAccumR, sequence, traverse)
 import Data.TraversableWithIndex (forWithIndex)
 import Data.Tuple (Tuple(..), fst, snd)
+import Debug (spy, spyWith)
 import Partial.Unsafe (unsafeCrashWith, unsafePartial)
 import PureScript.Backend.Optimizer.Analysis (BackendAnalysis(..), analysisOf, analyze, analyzeEffectBlock)
 import PureScript.Backend.Optimizer.CoreFn (Ann(..), Bind(..), Binder(..), Binding(..), CaseAlternative(..), CaseGuard(..), Comment, ConstructorType(..), Expr(..), Guard(..), Ident(..), Literal(..), Meta(..), Module(..), ModuleName(..), ProperName, Qualified(..), ReExport, findProp, propKey, propValue, qualifiedModuleName, unQualified)
 import PureScript.Backend.Optimizer.Directives (DirectiveHeaderResult, parseDirectiveHeader)
-import PureScript.Backend.Optimizer.Semantics (BackendExpr(..), BackendSemantics(..), Ctx(..), DataTypeMeta, Env(..), EvalRef(..), ExternImpl(..), ExternSpine, InlineAccessor(..), InlineDirective(..), InlineDirectiveMap, NeutralExpr(..), build, eval, evalExternFromImpl, evalExternRefFromImpl, freeze, optimize, quote)
+import PureScript.Backend.Optimizer.Semantics (BackendExpr(..), BackendSemantics(..), Ctx(..), DataTypeMeta, Env(..), EvalRef(..), ExternImpl(..), ExternSpine, InlineAccessor(..), InlineDirective(..), InlineDirectiveMap, NeutralExpr(..), build, eval, evalExternFromImpl, evalExternRefFromImpl, freeze, nextLevel, optimize, quote)
 import PureScript.Backend.Optimizer.Semantics.Foreign (ForeignEval)
 import PureScript.Backend.Optimizer.Syntax (BackendAccessor(..), BackendOperator(..), BackendOperator1(..), BackendOperator2(..), BackendOperatorOrd(..), BackendSyntax(..), Level(..), Pair(..))
 import PureScript.Backend.Optimizer.Utils (foldl1Array)
@@ -339,54 +341,126 @@ type FloatedBackendBinding =
   , recursive :: Boolean
   }
 
+-- We want to float some local bindings into global scope, so they can be
+-- inlined and optimized better (and shared). This will optimize things that
+-- look like typeclass dictionaries (functions of records of functions), so that
+-- each instance method has its own global definition. Let-bound variables will
+-- also be shared, although doing this under function scopes may reduce sharing,
+-- ...
 floatTopLevelBackendBindings :: Ctx -> Env -> Qualified Ident -> BackendExpr -> FloatedBackendBinding
-floatTopLevelBackendBindings quoteCtx evalEnv baseQual@(Qualified mod (Ident baseIdent)) = case _ of
+floatTopLevelBackendBindings quoteCtx@(Ctx { lookupExtern }) evalEnv baseQual@(Qualified mod (Ident baseIdent)) = case _ of
   ExprSyntax _ expr@(Let _ _ _ _) ->
-    go Map.empty [] $ eval evalEnv expr
+    unScope $ go Map.empty [] [] true $ eval evalEnv expr
   ExprSyntax _ expr@(LetRec _ _ _) ->
-    go Map.empty [] $ eval evalEnv expr
+    unScope $ go Map.empty [] [] true $ eval evalEnv expr
+  ExprSyntax _ expr@(Lit (LitRecord props)) | not Array.null props ->
+    unScope $ go Map.empty [] [] true $ eval evalEnv expr
+  ExprSyntax _ expr@(Abs _ _) ->
+    unScope $ go Map.empty [] [] true $ eval evalEnv expr
   other ->
     { expr: other, floated: [], recursive: false }
   where
-  go used acc = case _ of
+  go used acc scope linear = case _ of
+    -- A single let gets floated to global scope
     SemLet ident binding k -> do
       let { accum: used', value: topLevelQual } = toTopLevelIdent used ident
-      let bindingExpr = quote quoteCtx binding
+      let Tuple replacement bindingExpr = quoteAbstract scope topLevelQual binding
       let group = { bindings: [ Tuple topLevelQual bindingExpr ], recursive: false }
-      go used' (Array.snoc acc group) $ k $ NeutVar topLevelQual
+      go used' (Array.snoc acc group) scope linear $ k replacement
+    -- Recursive lets are trickier
     SemLetRec bindings k
-      | [ Tuple ident binding ] <- NonEmptyArray.toArray bindings -> do
+      | [ Tuple ident binding ] <- NonEmptyArray.toArray bindings, Array.null scope -> do
           let { accum: used', value: topLevelQual } = toTopLevelIdent used (Just ident)
           let groupSems = NonEmptyArray.singleton (Tuple ident (defer \_ -> NeutVar topLevelQual))
           case k groupSems of
             NeutVar qual | qual == topLevelQual -> do
               let groupSems' = NonEmptyArray.singleton (Tuple ident (defer \_ -> NeutVar baseQual))
-              { expr: quote quoteCtx (binding groupSems')
+              { expr: snd $ quoteAbstract scope topLevelQual $ binding groupSems'
               , floated: acc
               , recursive: true
-              }
+              } `Tuple` Tuple used' scope
             sem -> do
-              let bindingExpr = quote quoteCtx (binding groupSems)
+              let bindingExpr = snd $ quoteAbstract scope topLevelQual $ binding groupSems
               let group = { bindings: [ Tuple topLevelQual bindingExpr ], recursive: true }
-              go used' (Array.snoc acc group) sem
+              go used' (Array.snoc acc group) scope linear sem
       | otherwise -> do
           let { accum: used', value: topLevelQuals } = mapAccumL (\a -> toTopLevelIdent a <<< Just <<< fst) used bindings
           let groupSems = NonEmptyArray.zipWith (\a b -> a $> defer \_ -> NeutVar b) bindings topLevelQuals
           let
             bindingExprs = NonEmptyArray.zipWith
               ( \topLevelQual (Tuple _ binding) ->
-                  Tuple topLevelQual (quote quoteCtx (binding groupSems))
+                  Tuple topLevelQual $ snd $ quoteAbstract scope topLevelQual $ binding groupSems
               )
               topLevelQuals
               bindings
           let group = { bindings: NonEmptyArray.toArray bindingExprs, recursive: true }
-          go used' (Array.snoc acc group) $ k groupSems
+          go used' (Array.snoc acc group) scope linear $ k groupSems
+    -- We pull out stuff from individual fields of a record. This sets
+    -- linear=false to avoid recursing further into lambdas.
+    NeutLit (LitRecord props) | not Array.null props ->
+      goMany used acc scope (LitRecord (spy ("props:"<>baseIdent) props)) Lit
+    -- We go into lambdas until we see a record, extending `scope`.
+    SemLam ident body | linear -> do
+      go used acc (Array.snoc scope ident) linear $
+        body $ NeutLocal ident (Level (Array.length scope))
+    -- If we see a lambda inside a record, we pull it out into global scope.
+    expr@(SemLam _ _) -> do
+      -- TODO: pass name down from record
+      let { accum: used', value: topLevelQual } = toTopLevelIdent used Nothing
+      let Tuple replacement bindingExpr = quoteAbstract scope topLevelQual expr
+      let group = { bindings: [ Tuple topLevelQual bindingExpr ], recursive: false }
+      { expr: quoteIn scope replacement
+      , floated: Array.snoc acc group
+      , recursive: true
+      } `Tuple` Tuple used' scope
     other ->
-      { expr: quote quoteCtx other
+      { expr: quoteIn scope other
       , floated: acc
       , recursive: true
-      }
+      } `Tuple` Tuple used scope
 
+  -- Bookkeeping for traversing over parallel fields of a record.
+  goMany used acc scope children mkExpr =
+    let
+      prelim = mapAccumL (goMore scope $ spyWith ("acc0:"<>baseIdent) (map (map fst <<< _.bindings)) $ acc) { used, accMore: [] } children
+      x = mkExpr prelim.value
+    in
+      { expr: newSyntax x
+      , floated: acc <> prelim.accum.accMore
+      , recursive: true
+      } `Tuple` Tuple prelim.accum.used scope
+  goMore scope acc0 { used, accMore } child =
+    let
+      Tuple prelim (Tuple used' _) = go used acc0 scope false child
+      -- `acc` is already included in the result, so chop it off
+      added = Array.drop (Array.length acc0) prelim.floated
+    in { value: prelim.expr, accum: { used: used', accMore: accMore <> added } }
+
+  -- Bookkeeping for dealing with local scopes
+  unScope (Tuple prelim (Tuple _ scope)) =
+    prelim { expr = abstract scope prelim.expr }
+  newSyntax x = ExprSyntax (analyze lookupExtern x) x
+  quoteIn scope = quote case quoteCtx of
+    Ctx ctx -> Ctx ctx { currentLevel = ctx.currentLevel + Array.length scope }
+
+  -- TODO: make smarter so it discards unused variables.
+  -- This will be tricky/not worth it in the recursive lets.
+  quoteAbstract scope topLevelQual =
+    quoteIn scope >>> abstract scope >>>
+      Tuple (unAbstract topLevelQual scope)
+  -- Abstract out the shared variables before writing it to global scope.
+  abstract scope = case NEA.fromArray scope of
+    Nothing -> identity
+    Just scope' -> compose newSyntax $ Abs $
+      scope' # mapWithIndex \i -> Tuple <@> Level i
+  -- References to the new global binding need these variables reapplied.
+  unAbstract topLevelQual scope = case NEA.fromArray scope of
+    Nothing -> NeutVar topLevelQual
+    Just _ ->
+      NeutApp (NeutVar topLevelQual) $
+        scope # mapWithIndex \i -> NeutLocal <@> Level i
+
+  -- Name mangling
   toTopLevelIdent used = case _ of
     Just ident
       | Just n <- Map.lookup ident used ->
