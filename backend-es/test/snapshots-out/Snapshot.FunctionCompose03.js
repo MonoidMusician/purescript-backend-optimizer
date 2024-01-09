@@ -1,27 +1,40 @@
-const test4 = f => g => {
-  const $0 = g();
-  const $1 = f();
-  const $2 = g();
-  const $3 = f();
-  const $4 = g();
-  return x => $0($1($2($3($4(x)))));
+const test4$d0 = f => g => g();
+const test4$d1 = f => g => f();
+const test4$d2 = f => g => g();
+const test4$d3 = f => g => f();
+const test4$d4 = f => g => g();
+const test4 = f => g => x => test4$d0(f)(g)(test4$d1(f)(g)(test4$d2(f)(g)(test4$d3(f)(g)(test4$d4(f)(g)(x)))));
+const test3$d0 = f => g => f();
+const test3$d1 = f => g => g();
+const test3$d2 = f => g => f();
+const test3$d3 = f => g => g();
+const test3 = f => g => x => test3$d0(f)(g)(test3$d1(f)(g)(test3$d2(f)(g)(test3$d3(f)(g)(x))));
+const test2$d0 = f => g => g();
+const test2$d1 = f => g => f();
+const test2$d2 = f => g => g();
+const test2$d3 = f => g => x => test2$d1(f)(g)(test2$d2(f)(g)(x));
+const test2 = f => g => x => test2$d0(f)(g)(test2$d3(f)(g)(x));
+const test1$d0 = f => g => f();
+const test1$d1 = f => g => g();
+const test1 = f => g => x => test1$d0(f)(g)(test1$d1(f)(g)(x));
+export {
+  test1,
+  test1$d0,
+  test1$d1,
+  test2,
+  test2$d0,
+  test2$d1,
+  test2$d2,
+  test2$d3,
+  test3,
+  test3$d0,
+  test3$d1,
+  test3$d2,
+  test3$d3,
+  test4,
+  test4$d0,
+  test4$d1,
+  test4$d2,
+  test4$d3,
+  test4$d4
 };
-const test3 = f => g => {
-  const $0 = f();
-  const $1 = g();
-  const $2 = f();
-  const $3 = g();
-  return x => $0($1($2($3(x))));
-};
-const test2 = f => g => {
-  const $0 = g();
-  const $1 = f();
-  const $2 = g();
-  return x => $0($1($2(x)));
-};
-const test1 = f => g => {
-  const $0 = f();
-  const $1 = g();
-  return x => $0($1(x));
-};
-export {test1, test2, test3, test4};

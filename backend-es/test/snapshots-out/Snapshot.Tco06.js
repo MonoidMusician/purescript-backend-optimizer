@@ -1,3 +1,4 @@
+const f$d0 = a => b => a + b | 0;
 const $gf = ($gf$b$copy, $gf$a0$copy, $gf$a1$copy) => {
   let $gf$b = $gf$b$copy, $gf$a0 = $gf$a0$copy, $gf$a1 = $gf$a1$copy, $gf$c = true, $gf$r;
   while ($gf$c) {
@@ -10,14 +11,13 @@ const $gf = ($gf$b$copy, $gf$a0$copy, $gf$a1$copy) => {
     }
     if ($gf$b === 1) {
       const a = $gf$a0, b = $gf$a1;
-      const $0 = a + b | 0;
       $gf$b = 1;
-      $gf$a0 = $0;
-      $gf$a1 = $0 + 1 | 0;
+      $gf$a0 = f$d0(a)(b);
+      $gf$a1 = f$d0(a)(b) + 1 | 0;
     }
   }
   return $gf$r;
 };
 const g = a => $gf(0, a);
 const f = a => b => $gf(1, a, b);
-export {f, g};
+export {f, f$d0, g};

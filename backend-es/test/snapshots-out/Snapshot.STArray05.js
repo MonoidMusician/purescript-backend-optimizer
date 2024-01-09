@@ -1,7 +1,10 @@
+const test$d0 = x => {
+  if (x) { return a => () => a.push(1); }
+  return a => () => a.unshift(2);
+};
 const test = x => {
-  const $0 = x ? (a => () => a.push(1)) : a => () => a.unshift(2);
   const arr = [];
-  $0(arr)();
+  test$d0(x)(arr)();
   return arr;
 };
-export {test};
+export {test, test$d0};

@@ -650,10 +650,10 @@ printArrowFunction opts args stmts = Dodo.words
   [ case args of
       [ arg ] -> do
         let str = printIdentString arg
-        if isJust $ String.stripPrefix (String.Pattern "$__unused") str then
-          Dodo.text "()"
-        else
-          Dodo.text str
+        -- if isJust $ String.stripPrefix (String.Pattern "$__unused") str then
+        --   Dodo.text "()"
+        -- else
+        Dodo.text str
       _ ->
         Dodo.Common.jsParens $ Dodo.foldWithSeparator Dodo.Common.trailingComma $ printIdent <$> args
   , Dodo.text "=>"

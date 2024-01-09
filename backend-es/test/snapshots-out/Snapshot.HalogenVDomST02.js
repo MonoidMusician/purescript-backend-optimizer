@@ -2,11 +2,28 @@ import * as Assert from "../Assert/index.js";
 import * as Data$dEq from "../Data.Eq/index.js";
 import * as Data$dShow from "../Data.Show/index.js";
 import * as Snapshot$dHalogenVDomST01 from "../Snapshot.HalogenVDomST01/index.js";
-const assertEqual = /* #__PURE__ */ Assert.assertEqual({eq: /* #__PURE__ */ Data$dEq.eqArrayImpl(ra => rb => ra.a === rb.a && ra.b === rb.b)})({
-  show: /* #__PURE__ */ Data$dShow.showArrayImpl(record => "{ a: " + Data$dShow.showStringImpl(record.a) + ", b: " + Data$dShow.showIntImpl(record.b) + " }")
+import * as Type$dProxy from "../Type.Proxy/index.js";
+const bIsSymbol$d0 = $__unused => "b";
+const bIsSymbol = {reflectSymbol: bIsSymbol$d0};
+const aIsSymbol$d0 = $__unused => "a";
+const aIsSymbol = {reflectSymbol: aIsSymbol$d0};
+const assertEqual = /* #__PURE__ */ Assert.assertEqual({
+  eq: /* #__PURE__ */ Data$dEq.eqArrayImpl(/* #__PURE__ */ Data$dEq.eqRowCons$d0({eqRecord: /* #__PURE__ */ Data$dEq.eqRowCons$d0(Data$dEq.eqRowNil)()(bIsSymbol)(Data$dEq.eqInt)})()(aIsSymbol)(Data$dEq.eqString)(Type$dProxy.Proxy))
+})({
+  show: /* #__PURE__ */ Data$dShow.showArrayImpl(record => "{" + Data$dShow.showRecordFieldsCons$d0(aIsSymbol)({
+    showRecordFields: Data$dShow.showRecordFieldsConsNil$d0(bIsSymbol)(Data$dShow.showInt)
+  })(Data$dShow.showString)(Type$dProxy.Proxy)(record) + "}")
 });
-const assertEqual3 = /* #__PURE__ */ Assert.assertEqual({eq: /* #__PURE__ */ Data$dEq.eqArrayImpl(ra => rb => ra.a === rb.a && ra.b === rb.b && ra.ix === rb.ix)})({
-  show: /* #__PURE__ */ Data$dShow.showArrayImpl(record => "{ a: " + Data$dShow.showStringImpl(record.a) + ", b: " + Data$dShow.showIntImpl(record.b) + ", ix: " + Data$dShow.showIntImpl(record.ix) + " }")
+const ixIsSymbol$d0 = $__unused => "ix";
+const ixIsSymbol = {reflectSymbol: ixIsSymbol$d0};
+const assertEqual3 = /* #__PURE__ */ Assert.assertEqual({
+  eq: /* #__PURE__ */ Data$dEq.eqArrayImpl(/* #__PURE__ */ Data$dEq.eqRowCons$d0({
+    eqRecord: /* #__PURE__ */ Data$dEq.eqRowCons$d0({eqRecord: /* #__PURE__ */ Data$dEq.eqRowCons$d0(Data$dEq.eqRowNil)()(ixIsSymbol)(Data$dEq.eqInt)})()(bIsSymbol)(Data$dEq.eqInt)
+  })()(aIsSymbol)(Data$dEq.eqString)(Type$dProxy.Proxy))
+})({
+  show: /* #__PURE__ */ Data$dShow.showArrayImpl(record => "{" + Data$dShow.showRecordFieldsCons$d0(aIsSymbol)({
+    showRecordFields: Data$dShow.showRecordFieldsCons$d0(bIsSymbol)({showRecordFields: Data$dShow.showRecordFieldsConsNil$d0(ixIsSymbol)(Data$dShow.showInt)})(Data$dShow.showInt)
+  })(Data$dShow.showString)(Type$dProxy.Proxy)(record) + "}")
 });
 const main = () => {
   const merged1 = [];
@@ -36,4 +53,4 @@ const main = () => {
   })();
   return assertEqual3("diffWithIxE/result")({expected: [{ix: 0, a: "1", b: 1}, {ix: 1, a: "2", b: 2}], actual: result})();
 };
-export {assertEqual, assertEqual3, main};
+export {aIsSymbol, aIsSymbol$d0, assertEqual, assertEqual3, bIsSymbol, bIsSymbol$d0, ixIsSymbol, ixIsSymbol$d0, main};

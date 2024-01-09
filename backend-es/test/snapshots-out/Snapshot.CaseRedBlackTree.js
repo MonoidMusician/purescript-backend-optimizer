@@ -5,7 +5,7 @@ const Red = /* #__PURE__ */ $Color("Red");
 const Black = /* #__PURE__ */ $Color("Black");
 const Leaf = /* #__PURE__ */ $RedBlackTree("Leaf");
 const Node = value0 => value1 => value2 => value3 => $RedBlackTree("Node", value0, value1, value2, value3);
-const test1 = () => v => {
+const test1 = $__unused => v => {
   if (v.tag === "Node" && v._1 === "Black") {
     if (v._2.tag === "Node") {
       if (v._2._1 === "Red") {
