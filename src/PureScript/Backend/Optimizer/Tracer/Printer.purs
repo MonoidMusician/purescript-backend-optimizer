@@ -186,6 +186,7 @@ printBranch conds fallback =
               , D.space
               , D.text "then"
               ]
+          , D.break
           , D.indent b
           , D.break
           , D.text "else"

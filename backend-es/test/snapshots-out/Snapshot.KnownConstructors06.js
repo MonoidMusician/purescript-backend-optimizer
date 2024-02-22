@@ -1,4 +1,8 @@
 // @inline Data.Show.Generic.genericShowConstructor arity=2
+// -- @inline Data.Enum.Generic.genericEnumConstructor arity=1
+// @inline Data.Enum.Generic.genericEnumSum arity=4
+// -- @inline Data.Bounded.Generic.genericBottomConstructor arity=1
+// -- @inline Data.Bounded.Generic.genericBottomSum arity=1
 // @inline export genericTest.from arity=1
 import * as $runtime from "../runtime.js";
 import * as Data$dGeneric$dRep from "../Data.Generic.Rep/index.js";

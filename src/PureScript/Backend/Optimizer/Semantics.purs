@@ -5,6 +5,7 @@ import Prelude
 import Control.Alternative (guard)
 import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
+import Data.Array.NonEmpty as NEA
 import Data.Array.NonEmpty as NonEmptyArray
 import Data.Either (Either(..))
 import Data.Foldable (class Foldable, and, foldMap, foldl, foldr, or)
@@ -12,15 +13,17 @@ import Data.Foldable as Foldable
 import Data.Foldable as Tuple
 import Data.Int.Bits (complement, shl, shr, xor, zshr, (.&.), (.|.))
 import Data.Lazy (Lazy, defer, force)
+import Data.List (List(..))
 import Data.List as List
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Monoid (power)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Set as Set
 import Data.String as String
-import Data.Tuple (Tuple(..), fst, snd)
+import Data.Tuple (Tuple(..), fst, snd, uncurry)
+import Debug (spy)
 import Partial.Unsafe (unsafeCrashWith)
 import PureScript.Backend.Optimizer.Analysis (class HasAnalysis, BackendAnalysis(..), Capture(..), Complexity(..), ResultTerm(..), Usage(..), analysisOf, bound, bump, complex, resultOf, updated, withResult, withRewrite)
 import PureScript.Backend.Optimizer.CoreFn (ConstructorType, Ident(..), Literal(..), ModuleName, Prop(..), ProperName, Qualified(..), findProp, propKey, propValue)
@@ -1496,6 +1499,28 @@ shouldUnpackArray ident level binding body = do
           Just $ ExprRewrite (withRewrite analysis) $ RewriteUnpackOp ident level (UnpackArray exprs) body
     _ ->
       Nothing
+
+addDefault :: NonEmptyArray (SemConditional BackendSemantics) -> Lazy BackendSemantics -> Array (Tuple Int (SemConditional BackendSemantics))
+addDefault branches def =
+  Array.mapWithIndex Tuple $
+    Array.snoc (NEA.toArray branches) $
+      SemConditional (pure (NeutLit (LitBoolean true))) def
+
+-- probeDecision :: List Int -> Env -> BackendSemantics -> Maybe (List Int)
+-- probeDecision loc env (SemBranch branches def) =
+--   let
+--     stopBranch idx (SemConditional c b) = case ?help env (force c) of
+--       NeutLit (LitBoolean false) -> Nothing -- keep searching
+--       NeutLit (LitBoolean true) ->
+--         Just $ probeDecision (Cons idx loc) env (force b)
+--       NeutFail _ -> Just Nothing -- error means it does not matter
+--       _ -> Just (Just loc) -- stuck
+--   in fromMaybe Nothing $ -- TODO: check if `def` is Fail
+--     Array.findMap (uncurry stopBranch) $
+--       addDefault branches def
+-- probeDecision loc _ _ = Just loc
+
+-- probeDecisions ident level branches def body = 
 
 shouldDistributeBranches :: Maybe Ident -> Level -> BackendExpr -> BackendExpr -> Maybe BackendExpr
 shouldDistributeBranches ident level a body = do

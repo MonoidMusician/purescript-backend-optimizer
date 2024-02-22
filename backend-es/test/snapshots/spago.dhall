@@ -5,6 +5,7 @@
   , "convertable-options"
   , "effect"
   , "either"
+  , "enums"
   , "exceptions"
   , "exists"
   , "foldable-traversable"
