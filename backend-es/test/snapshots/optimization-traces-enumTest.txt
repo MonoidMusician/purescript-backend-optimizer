@@ -1,0 +1,292 @@
+== Snapshot.KnownConstructors06 ================================================
+================================================================================
+
+++ Snapshot.KnownConstructors06.enumTest Step 1 (Original) +++++++++++++++++++++
+  { "pred":
+      Data.Enum.Generic.genericPred
+        Snapshot.KnownConstructors06.genericTest
+        Snapshot.KnownConstructors06.genericEnumSum1
+  , "succ":
+      Data.Enum.Generic.genericSucc
+        Snapshot.KnownConstructors06.genericTest
+        Snapshot.KnownConstructors06.genericEnumSum1
+  , "Ord0": \_ -> Snapshot.KnownConstructors06.ordTest
+  }
+
+-- Snapshot.KnownConstructors06.enumTest Step 2 --------------------------------
+  { "pred":
+      \x@0 ->
+        {- DistLet -}
+        let
+          @1 =
+            if #[prim.istag Snapshot.KnownConstructors06.Foo](x@0) then
+              Data.Generic.Rep.Inl(Data.Generic.Rep.NoArguments())
+            else if #[prim.istag Snapshot.KnownConstructors06.Bar](x@0) then
+              Data.Generic.Rep.Inr
+                (Data.Generic.Rep.Inl(Data.Generic.Rep.NoArguments()))
+            else if #[prim.istag Snapshot.KnownConstructors06.Baz](x@0) then
+              Data.Generic.Rep.Inr
+                ( Data.Generic.Rep.Inr
+                  (Data.Generic.Rep.Inl(Data.Generic.Rep.NoArguments()))
+                )
+            else if #[prim.istag Snapshot.KnownConstructors06.Qux](x@0) then
+              Data.Generic.Rep.Inr
+                ( Data.Generic.Rep.Inr
+                  (Data.Generic.Rep.Inr(Data.Generic.Rep.NoArguments()))
+                )
+            else 
+              #[prim.fail]() in
+        let
+          @2 =
+            {- Inline -}
+            let
+              @2 =
+                if #[prim.istag Data.Generic.Rep.Inl](@1) then
+                  Data.Maybe.Nothing()
+                else if #[prim.istag Data.Generic.Rep.Inr](@1) then
+                  if #[prim.istag Data.Generic.Rep.Inl](@1#0) then
+                    Data.Maybe.Just
+                      (Data.Generic.Rep.Inl(Data.Generic.Rep.NoArguments()))
+                  else if #[prim.istag Data.Generic.Rep.Inr](@1#0) then
+                    if #[prim.istag Data.Generic.Rep.Inl](@1#0#0) then
+                      Data.Maybe.Just
+                        ( Data.Generic.Rep.Inr
+                          (Data.Generic.Rep.Inl(Data.Generic.Rep.NoArguments()))
+                        )
+                    else if #[prim.istag Data.Generic.Rep.Inr](@1#0#0) then
+                      Data.Maybe.Just
+                        ( Data.Generic.Rep.Inr
+                          ( Data.Generic.Rep.Inr
+                            ( Data.Generic.Rep.Inl
+                              (Data.Generic.Rep.NoArguments())
+                            )
+                          )
+                        )
+                    else 
+                      #[prim.fail]()
+                  else 
+                    #[prim.fail]()
+                else 
+                  #[prim.fail]() in
+            @2 in
+        if #[prim.istag Data.Maybe.Just](@2) then
+          Data.Maybe.Just
+            ( {- Inline -}
+            let @3 = @2#0 in
+            {- Inline -}
+            let
+              @4 =
+                if #[prim.istag Data.Generic.Rep.Inl](@3) then
+                  Snapshot.KnownConstructors06.Foo()
+                else if #[prim.istag Data.Generic.Rep.Inr](@3) then
+                  if #[prim.istag Data.Generic.Rep.Inl](@3#0) then
+                    Snapshot.KnownConstructors06.Bar()
+                  else if #[prim.istag Data.Generic.Rep.Inr](@3#0) then
+                    if #[prim.istag Data.Generic.Rep.Inl](@3#0#0) then
+                      Snapshot.KnownConstructors06.Baz()
+                    else if #[prim.istag Data.Generic.Rep.Inr](@3#0#0) then
+                      Snapshot.KnownConstructors06.Qux()
+                    else 
+                      #[prim.fail]()
+                  else 
+                    #[prim.fail]()
+                else 
+                  #[prim.fail]() in
+            @4
+            )
+        else 
+          Data.Maybe.Nothing()
+  , "succ":
+      \x@0 ->
+        {- DistLet -}
+        let
+          @1 =
+            if #[prim.istag Snapshot.KnownConstructors06.Foo](x@0) then
+              Data.Generic.Rep.Inl(Data.Generic.Rep.NoArguments())
+            else if #[prim.istag Snapshot.KnownConstructors06.Bar](x@0) then
+              Data.Generic.Rep.Inr
+                (Data.Generic.Rep.Inl(Data.Generic.Rep.NoArguments()))
+            else if #[prim.istag Snapshot.KnownConstructors06.Baz](x@0) then
+              Data.Generic.Rep.Inr
+                ( Data.Generic.Rep.Inr
+                  (Data.Generic.Rep.Inl(Data.Generic.Rep.NoArguments()))
+                )
+            else if #[prim.istag Snapshot.KnownConstructors06.Qux](x@0) then
+              Data.Generic.Rep.Inr
+                ( Data.Generic.Rep.Inr
+                  (Data.Generic.Rep.Inr(Data.Generic.Rep.NoArguments()))
+                )
+            else 
+              #[prim.fail]() in
+        let
+          @2 =
+            {- Inline -}
+            let
+              @2 =
+                if #[prim.istag Data.Generic.Rep.Inl](@1) then
+                  Data.Maybe.Just
+                    ( Data.Generic.Rep.Inr
+                      (Data.Generic.Rep.Inl(Data.Generic.Rep.NoArguments()))
+                    )
+                else if #[prim.istag Data.Generic.Rep.Inr](@1) then
+                  if #[prim.istag Data.Generic.Rep.Inl](@1#0) then
+                    Data.Maybe.Just
+                      ( Data.Generic.Rep.Inr
+                        ( Data.Generic.Rep.Inr
+                          (Data.Generic.Rep.Inl(Data.Generic.Rep.NoArguments()))
+                        )
+                      )
+                  else if #[prim.istag Data.Generic.Rep.Inr](@1#0) then
+                    if #[prim.istag Data.Generic.Rep.Inl](@1#0#0) then
+                      Data.Maybe.Just
+                        ( Data.Generic.Rep.Inr
+                          ( Data.Generic.Rep.Inr
+                            ( Data.Generic.Rep.Inr
+                              (Data.Generic.Rep.NoArguments())
+                            )
+                          )
+                        )
+                    else if #[prim.istag Data.Generic.Rep.Inr](@1#0#0) then
+                      Data.Maybe.Nothing()
+                    else 
+                      #[prim.fail]()
+                  else 
+                    #[prim.fail]()
+                else 
+                  #[prim.fail]() in
+            @2 in
+        if #[prim.istag Data.Maybe.Just](@2) then
+          Data.Maybe.Just
+            ( {- Inline -}
+            let @3 = @2#0 in
+            {- Inline -}
+            let
+              @4 =
+                if #[prim.istag Data.Generic.Rep.Inl](@3) then
+                  Snapshot.KnownConstructors06.Foo()
+                else if #[prim.istag Data.Generic.Rep.Inr](@3) then
+                  if #[prim.istag Data.Generic.Rep.Inl](@3#0) then
+                    Snapshot.KnownConstructors06.Bar()
+                  else if #[prim.istag Data.Generic.Rep.Inr](@3#0) then
+                    if #[prim.istag Data.Generic.Rep.Inl](@3#0#0) then
+                      Snapshot.KnownConstructors06.Baz()
+                    else if #[prim.istag Data.Generic.Rep.Inr](@3#0#0) then
+                      Snapshot.KnownConstructors06.Qux()
+                    else 
+                      #[prim.fail]()
+                  else 
+                    #[prim.fail]()
+                else 
+                  #[prim.fail]() in
+            @4
+            )
+        else 
+          Data.Maybe.Nothing()
+  , "Ord0": \_ -> Snapshot.KnownConstructors06.ordTest
+  }
+
+-- Snapshot.KnownConstructors06.enumTest Step 3 --------------------------------
+  { "pred":
+      \x@0 ->
+        if #[prim.istag Snapshot.KnownConstructors06.Foo](x@0) then
+          {- Inline -}
+          let @1 = Data.Maybe.Nothing() in
+          Data.Maybe.Nothing()
+        else if #[prim.istag Snapshot.KnownConstructors06.Bar](x@0) then
+          {- Inline -}
+          let
+            @1 =
+              Data.Maybe.Just
+                (Data.Generic.Rep.Inl(Data.Generic.Rep.NoArguments())) in
+          Data.Maybe.Just(Snapshot.KnownConstructors06.Foo())
+        else if #[prim.istag Snapshot.KnownConstructors06.Baz](x@0) then
+          {- Inline -}
+          let
+            @1 =
+              Data.Maybe.Just
+                ( Data.Generic.Rep.Inr
+                  (Data.Generic.Rep.Inl(Data.Generic.Rep.NoArguments()))
+                ) in
+          Data.Maybe.Just(Snapshot.KnownConstructors06.Bar())
+        else if #[prim.istag Snapshot.KnownConstructors06.Qux](x@0) then
+          {- Inline -}
+          let
+            @1 =
+              Data.Maybe.Just
+                ( Data.Generic.Rep.Inr
+                  ( Data.Generic.Rep.Inr
+                    (Data.Generic.Rep.Inl(Data.Generic.Rep.NoArguments()))
+                  )
+                ) in
+          Data.Maybe.Just(Snapshot.KnownConstructors06.Baz())
+        else 
+          #[prim.fail]()
+  , "succ":
+      \x@0 ->
+        if #[prim.istag Snapshot.KnownConstructors06.Foo](x@0) then
+          {- Inline -}
+          let
+            @1 =
+              Data.Maybe.Just
+                ( Data.Generic.Rep.Inr
+                  (Data.Generic.Rep.Inl(Data.Generic.Rep.NoArguments()))
+                ) in
+          Data.Maybe.Just(Snapshot.KnownConstructors06.Bar())
+        else if #[prim.istag Snapshot.KnownConstructors06.Bar](x@0) then
+          {- Inline -}
+          let
+            @1 =
+              Data.Maybe.Just
+                ( Data.Generic.Rep.Inr
+                  ( Data.Generic.Rep.Inr
+                    (Data.Generic.Rep.Inl(Data.Generic.Rep.NoArguments()))
+                  )
+                ) in
+          Data.Maybe.Just(Snapshot.KnownConstructors06.Baz())
+        else if #[prim.istag Snapshot.KnownConstructors06.Baz](x@0) then
+          {- Inline -}
+          let
+            @1 =
+              Data.Maybe.Just
+                ( Data.Generic.Rep.Inr
+                  ( Data.Generic.Rep.Inr
+                    (Data.Generic.Rep.Inr(Data.Generic.Rep.NoArguments()))
+                  )
+                ) in
+          Data.Maybe.Just(Snapshot.KnownConstructors06.Qux())
+        else if #[prim.istag Snapshot.KnownConstructors06.Qux](x@0) then
+          {- Inline -}
+          let @1 = Data.Maybe.Nothing() in
+          Data.Maybe.Nothing()
+        else 
+          #[prim.fail]()
+  , "Ord0": \_ -> Snapshot.KnownConstructors06.ordTest
+  }
+
+-- Snapshot.KnownConstructors06.enumTest Step 4 (Final) ------------------------
+  { "pred":
+      \x@0 ->
+        if #[prim.istag Snapshot.KnownConstructors06.Foo](x@0) then
+          Data.Maybe.Nothing()
+        else if #[prim.istag Snapshot.KnownConstructors06.Bar](x@0) then
+          Data.Maybe.Just(Snapshot.KnownConstructors06.Foo())
+        else if #[prim.istag Snapshot.KnownConstructors06.Baz](x@0) then
+          Data.Maybe.Just(Snapshot.KnownConstructors06.Bar())
+        else if #[prim.istag Snapshot.KnownConstructors06.Qux](x@0) then
+          Data.Maybe.Just(Snapshot.KnownConstructors06.Baz())
+        else 
+          #[prim.fail]()
+  , "succ":
+      \x@0 ->
+        if #[prim.istag Snapshot.KnownConstructors06.Foo](x@0) then
+          Data.Maybe.Just(Snapshot.KnownConstructors06.Bar())
+        else if #[prim.istag Snapshot.KnownConstructors06.Bar](x@0) then
+          Data.Maybe.Just(Snapshot.KnownConstructors06.Baz())
+        else if #[prim.istag Snapshot.KnownConstructors06.Baz](x@0) then
+          Data.Maybe.Just(Snapshot.KnownConstructors06.Qux())
+        else if #[prim.istag Snapshot.KnownConstructors06.Qux](x@0) then
+          Data.Maybe.Nothing()
+        else 
+          #[prim.fail]()
+  , "Ord0": \_ -> Snapshot.KnownConstructors06.ordTest
+  }

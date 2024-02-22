@@ -15,13 +15,13 @@ import Data.Show.Generic (genericShow)
 
 data Test = Foo | Bar | Baz | Qux
 
--- derive instance Eq Test
--- derive instance Ord Test
+derive instance Eq Test
+derive instance Ord Test
 derive instance genericTest :: Generic Test _
 
 instance Show Test where
   show = genericShow
 
--- instance Enum Test where
---   pred = genericPred
---   succ = genericSucc
+instance Enum Test where
+  pred = genericPred
+  succ = genericSucc

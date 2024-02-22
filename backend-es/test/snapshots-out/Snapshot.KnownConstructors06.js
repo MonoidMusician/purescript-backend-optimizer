@@ -6,11 +6,43 @@
 // @inline export genericTest.from arity=1
 import * as $runtime from "../runtime.js";
 import * as Data$dGeneric$dRep from "../Data.Generic.Rep/index.js";
+import * as Data$dMaybe from "../Data.Maybe/index.js";
+import * as Data$dOrdering from "../Data.Ordering/index.js";
 const $Test = tag => tag;
 const Foo = /* #__PURE__ */ $Test("Foo");
 const Bar = /* #__PURE__ */ $Test("Bar");
 const Baz = /* #__PURE__ */ $Test("Baz");
 const Qux = /* #__PURE__ */ $Test("Qux");
+const eqTest = {
+  eq: x => y => {
+    if (x === "Foo") { return y === "Foo"; }
+    if (x === "Bar") { return y === "Bar"; }
+    if (x === "Baz") { return y === "Baz"; }
+    return x === "Qux" && y === "Qux";
+  }
+};
+const ordTest = {
+  compare: x => y => {
+    if (x === "Foo") {
+      if (y === "Foo") { return Data$dOrdering.EQ; }
+      return Data$dOrdering.LT;
+    }
+    if (y === "Foo") { return Data$dOrdering.GT; }
+    if (x === "Bar") {
+      if (y === "Bar") { return Data$dOrdering.EQ; }
+      return Data$dOrdering.LT;
+    }
+    if (y === "Bar") { return Data$dOrdering.GT; }
+    if (x === "Baz") {
+      if (y === "Baz") { return Data$dOrdering.EQ; }
+      return Data$dOrdering.LT;
+    }
+    if (y === "Baz") { return Data$dOrdering.GT; }
+    if (x === "Qux" && y === "Qux") { return Data$dOrdering.EQ; }
+    $runtime.fail();
+  },
+  Eq0: () => eqTest
+};
 const genericTest = {
   to: x => {
     if (x.tag === "Inl") { return Foo; }
@@ -31,6 +63,23 @@ const genericTest = {
     $runtime.fail();
   }
 };
+const enumTest = {
+  pred: x => {
+    if (x === "Foo") { return Data$dMaybe.Nothing; }
+    if (x === "Bar") { return Data$dMaybe.$Maybe("Just", Foo); }
+    if (x === "Baz") { return Data$dMaybe.$Maybe("Just", Bar); }
+    if (x === "Qux") { return Data$dMaybe.$Maybe("Just", Baz); }
+    $runtime.fail();
+  },
+  succ: x => {
+    if (x === "Foo") { return Data$dMaybe.$Maybe("Just", Bar); }
+    if (x === "Bar") { return Data$dMaybe.$Maybe("Just", Baz); }
+    if (x === "Baz") { return Data$dMaybe.$Maybe("Just", Qux); }
+    if (x === "Qux") { return Data$dMaybe.Nothing; }
+    $runtime.fail();
+  },
+  Ord0: () => ordTest
+};
 const showTest = {
   show: x => {
     if (x === "Foo") { return "Foo"; }
@@ -40,4 +89,4 @@ const showTest = {
     $runtime.fail();
   }
 };
-export {$Test, Bar, Baz, Foo, Qux, genericTest, showTest};
+export {$Test, Bar, Baz, Foo, Qux, enumTest, eqTest, genericTest, ordTest, showTest};
