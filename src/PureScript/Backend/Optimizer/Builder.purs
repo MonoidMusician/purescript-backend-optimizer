@@ -8,7 +8,6 @@ module PureScript.Backend.Optimizer.Builder
 
 import Prelude
 
-import Data.FoldableWithIndex (foldrWithIndex)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.List (List, foldM)
 import Data.List as List
@@ -17,13 +16,13 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), fst)
 import PureScript.Backend.Optimizer.Analysis (BackendAnalysis)
 import PureScript.Backend.Optimizer.Convert (BackendModule, OptimizationSteps, toBackendModule)
-import PureScript.Backend.Optimizer.CoreFn (Ann, Ident, Import(..), Module(..), ModuleName, Qualified(..), isPrimModule)
+import PureScript.Backend.Optimizer.CoreFn (Ann, Ident, Import(..), Module(..), ModuleName, Qualified, isPrimModule)
 import PureScript.Backend.Optimizer.QIMap (QIMap)
 import PureScript.Backend.Optimizer.QIMap as QIMap
-import PureScript.Backend.Optimizer.Semantics (BackendExpr, Ctx, EvalRef(..), ExternImpl, InlineDirectiveMap)
+import PureScript.Backend.Optimizer.Semantics (BackendExpr, Ctx, ExternImpl, InlineDirectiveMap, noDirectives, unionDirectives)
 import PureScript.Backend.Optimizer.Semantics.Foreign (ForeignEval)
 import PureScript.Backend.Optimizer.Syntax (BackendSyntax)
 
@@ -67,7 +66,7 @@ buildModules options coreFnModulesUnfiltered =
       let r = trimIncrementalState coreFnModulesUnfiltered incrementalState
       -- These directives are only module exports, but we also need to include
       -- the global directives first
-      in r { directives = Map.union options.directives r.directives }
+      in r { directives = unionDirectives options.directives r.directives }
   coreFnModules = mapWithIndex Tuple $ coreFnModulesUnfiltered
     # List.filter \(Module { name }) -> not $ Set.member name state0.built
   moduleCount = List.length coreFnModules
@@ -92,14 +91,14 @@ buildModules options coreFnModulesUnfiltered =
       newImplementations = QIMap.union implementations backendMod.implementations
     options.onCodegenModule (buildEnv { implementations = newImplementations }) coreFnModule' backendMod optimizationSteps
     pure
-      { directives: foldrWithIndex Map.insert directives backendMod.directives
+      { directives: unionDirectives backendMod.directives directives
       , implementations: newImplementations
       , built: Set.insert name built
       }
 
 trimIncrementalState :: List (Module Ann) -> BuildState -> BuildState
 trimIncrementalState _ { built } | Set.isEmpty built =
-  { built: Set.empty, directives: Map.empty, implementations: QIMap.empty }
+  { built: Set.empty, directives: noDirectives, implementations: QIMap.empty }
 trimIncrementalState allModules toVerify = { built, directives, implementations }
   where
   depMap = Map.fromFoldable $ allModules <#> \(Module { name, imports }) ->
@@ -107,9 +106,7 @@ trimIncrementalState allModules toVerify = { built, directives, implementations 
   -- Trim the `built` set down to modules that are transitively built
   built = trimming $ toVerify.built
   -- Filter the module-export directives down to modules included in `built`
-  directives = toVerify.directives # Map.filterKeys case _ of
-    EvalExtern (Qualified (Just name) _) -> Set.member name built
-    _ -> false
+  directives = Tuple (QIMap.matchModules built (fst toVerify.directives)) Map.empty
   -- Filter the identifier implementations down to modules included in `built`
   implementations = toVerify.implementations # QIMap.matchModules built
 
