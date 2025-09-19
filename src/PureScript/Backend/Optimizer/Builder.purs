@@ -27,6 +27,8 @@ import PureScript.Backend.Optimizer.Syntax (BackendSyntax)
 
 type BuildEnv =
   { implementations :: Map (Qualified Ident) (Tuple BackendAnalysis ExternImpl)
+  , directives :: InlineDirectiveMap
+  , built :: Set ModuleName
   , moduleCount :: Int
   , moduleIndex :: Int
   }
@@ -67,7 +69,7 @@ buildModules options coreFnModulesUnfiltered =
     # List.filter \(Module { name }) -> not $ Set.member name state0.built
   moduleCount = List.length coreFnModules
   go { directives, implementations, built } (Tuple moduleIndex coreFnModule) = do
-    let buildEnv = { implementations, moduleCount, moduleIndex }
+    let buildEnv = { built, implementations, directives, moduleCount, moduleIndex }
     coreFnModule'@(Module { name }) <- options.onPrepareModule buildEnv coreFnModule
     let
       Tuple optimizationSteps backendMod = toBackendModule coreFnModule'
@@ -113,7 +115,7 @@ trimIncrementalState allModules toVerify = { built, directives, implementations 
 
   trim moduleSet = moduleSet # Set.filter \name ->
     case Map.lookup name depMap of
-      Nothing -> false
+      Nothing -> true -- Just assume it is okay, if dependency information was not included
       Just deps -> Set.subset deps moduleSet
   trimming moduleSet =
     case trim moduleSet of
